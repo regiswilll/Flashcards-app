@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flashcards</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>Flashcards</h1>
+    <button id="start-review" class="btn btn-primary" type="button">Start review</button>
+  </header>
+
+  <main>
+    <!-- Deck view: add/edit form and card list -->
+    <section id="deck-view">
+      <form id="card-form" class="panel" autocomplete="off">
+        <h2 id="form-title">Add a card</h2>
+        <label for="question-input">Question</label>
+        <textarea id="question-input" rows="2" required></textarea>
+        <label for="answer-input">Answer</label>
+        <textarea id="answer-input" rows="3" required></textarea>
+        <div class="form-actions">
+          <button id="submit-btn" class="btn btn-primary" type="submit">Add card</button>
+          <button id="cancel-edit" class="btn" type="button" hidden>Cancel</button>
+        </div>
+      </form>
+
+      <div class="deck-header">
+        <h2>Your deck</h2>
+        <p id="deck-stats" class="muted"></p>
+      </div>
+      <p id="empty-message" class="muted empty">No cards yet. Add your first one above.</p>
+      <ul id="card-list" class="card-list"></ul>
+    </section>
+
+    <!-- Review view: one card at a time, then a summary -->
+    <section id="review-view" hidden>
+      <div id="review-session">
+        <div class="review-top">
+          <p id="review-progress" class="muted"></p>
+          <button id="exit-review" class="btn" type="button">Exit review</button>
+        </div>
+
+        <div class="card-scene">
+          <div id="flashcard" class="flashcard" role="button" tabindex="0" aria-label="Flip card">
+            <div class="card-face card-front">
+              <span class="face-label">Question</span>
+              <p id="card-question" class="face-text"></p>
+            </div>
+            <div class="card-face card-back">
+              <span class="face-label">Answer</span>
+              <p id="card-answer" class="face-text"></p>
+            </div>
+          </div>
+        </div>
+
+        <p id="flip-hint" class="muted hint">Click the card or press Space to flip</p>
+        <div id="mark-actions" class="mark-actions" hidden>
+          <button id="mark-learning" class="btn btn-learning" type="button">Still learning</button>
+          <button id="mark-known" class="btn btn-known" type="button">Known</button>
+        </div>
+      </div>
+
+      <div id="review-summary" class="panel summary" hidden>
+        <h2>Review complete</h2>
+        <p id="summary-text"></p>
+        <div class="form-actions">
+          <button id="review-again" class="btn btn-primary" type="button">Review again</button>
+          <button id="back-to-deck" class="btn" type="button">Back to deck</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

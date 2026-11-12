@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Icon?
+
+# iCloud Drive sync artifacts
+*.icloud
+
+# Editors / IDEs
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Logs and temp files
+*.log
+*.tmp
+
+# Environment / secrets
+.env
+.env.*
+
+# Safeguard: this project uses no npm packages
+node_modules/
