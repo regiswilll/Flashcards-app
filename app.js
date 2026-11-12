@@ -13,7 +13,7 @@ const STATUS_LABELS = {
 let cards = [];
 let editingId = null;
 let ownerName = "";
-let review = null; // { queue, index, flipped, known, learning }
+let review = null; // { queue, index, flipped, results: { [cardId]: "known" | "learning" } }
 
 // DOM references
 const els = {
@@ -279,8 +279,7 @@ function startReview() {
     queue: cards.map((c) => c.id),
     index: 0,
     flipped: false,
-    known: 0,
-    learning: 0,
+    results: {},
   };
 
   els.deckView.hidden = true;
@@ -331,11 +330,18 @@ function markCard(status) {
   if (card) {
     card.status = status;
     saveCards();
+    // One result per card, so re-marking a card after navigating back replaces its earlier result.
+    review.results[card.id] = status;
   }
-  if (status === "known") review.known += 1;
-  else review.learning += 1;
 
   advanceReview();
+}
+
+// Jumps to the card at the given position in the review session, ignoring positions outside the deck.
+function goToCard(index) {
+  if (!review || index < 0 || index >= review.queue.length) return;
+  review.index = index;
+  showReviewCard();
 }
 
 // Moves to the next card in the session, or shows the summary when the deck is finished.
@@ -348,12 +354,18 @@ function advanceReview() {
   }
 }
 
-// Shows the end-of-session summary with known / still learning counts.
+// Shows the end-of-session summary with known / still learning / skipped counts.
 function showSummary() {
+  const results = Object.values(review.results);
+  const known = results.filter((s) => s === "known").length;
+  const learning = results.filter((s) => s === "learning").length;
+  const skipped = review.queue.length - results.length;
+
   els.reviewSession.hidden = true;
   els.reviewSummary.hidden = false;
   els.summaryText.textContent =
-    `You marked ${review.known} as known and ${review.learning} as still learning.`;
+    `You marked ${known} as known and ${learning} as still learning` +
+    (skipped > 0 ? `, and skipped ${skipped}.` : ".");
   els.reviewAgain.focus();
 }
 
@@ -366,12 +378,28 @@ function exitReview() {
   renderDeck();
 }
 
-// Handles keyboard input: Space flips the card while reviewing.
+// Handles keyboard shortcuts: Escape cancels a card edit; while reviewing, Space flips
+// the card and the Left/Right arrow keys move to the previous/next card.
 function handleKeydown(event) {
+  // Escape in the name field is handled by that field, so only cancel card edits elsewhere.
+  if (event.key === "Escape" && editingId && event.target !== els.ownerInput) {
+    event.preventDefault();
+    cancelEdit();
+    return;
+  }
+
   if (!review || els.reviewView.hidden || !els.reviewSummary.hidden) return;
+  if (event.metaKey || event.ctrlKey || event.altKey) return;
+
   if (event.code === "Space" || event.key === " ") {
     event.preventDefault();
     flipCard();
+  } else if (event.key === "ArrowRight") {
+    event.preventDefault();
+    goToCard(review.index + 1);
+  } else if (event.key === "ArrowLeft") {
+    event.preventDefault();
+    goToCard(review.index - 1);
   }
 }
 
