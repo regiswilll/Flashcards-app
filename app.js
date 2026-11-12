@@ -1,6 +1,7 @@
 "use strict";
 
 const STORAGE_KEY = "flashcards.deck";
+const OWNER_KEY = "flashcards.owner";
 
 const STATUS_LABELS = {
   new: "New",
@@ -11,6 +12,7 @@ const STATUS_LABELS = {
 // App state
 let cards = [];
 let editingId = null;
+let ownerName = "";
 let review = null; // { queue, index, flipped, known, learning }
 
 // DOM references
@@ -23,6 +25,8 @@ const els = {
   answerInput: document.getElementById("answer-input"),
   submitBtn: document.getElementById("submit-btn"),
   cancelEdit: document.getElementById("cancel-edit"),
+  ownerBtn: document.getElementById("owner-btn"),
+  ownerInput: document.getElementById("owner-input"),
   deckStats: document.getElementById("deck-stats"),
   emptyMessage: document.getElementById("empty-message"),
   cardList: document.getElementById("card-list"),
@@ -63,6 +67,25 @@ function saveCards() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
   } catch (err) {
     console.warn("Could not save deck:", err);
+  }
+}
+
+// Loads the saved deck owner's name from localStorage (empty string if none).
+function loadOwner() {
+  try {
+    return localStorage.getItem(OWNER_KEY) || "";
+  } catch (err) {
+    return "";
+  }
+}
+
+// Saves the deck owner's name to localStorage, removing it when blank.
+function saveOwner() {
+  try {
+    if (ownerName) localStorage.setItem(OWNER_KEY, ownerName);
+    else localStorage.removeItem(OWNER_KEY);
+  } catch (err) {
+    console.warn("Could not save name:", err);
   }
 }
 
@@ -199,6 +222,52 @@ function deleteCard(id) {
   renderDeck();
 }
 
+/* ---------- Deck owner name ---------- */
+
+// Turns a name into its possessive form, e.g. "Lisa" -> "Lisa's"; keeps it as-is if already possessive.
+function toPossessive(name) {
+  if (/['’]s?$/i.test(name)) return name;
+  return name + "'s";
+}
+
+// Shows the owner's name (or "Your" when none is set) in the deck heading.
+function renderOwner() {
+  els.ownerBtn.textContent = ownerName ? toPossessive(ownerName) : "Your";
+}
+
+// Swaps the heading's name label for a text input so the user can type their name.
+function startOwnerEdit() {
+  els.ownerInput.value = ownerName;
+  els.ownerBtn.hidden = true;
+  els.ownerInput.hidden = false;
+  els.ownerInput.focus();
+  els.ownerInput.select();
+}
+
+// Closes the name input, saving the typed name unless the edit was cancelled.
+function finishOwnerEdit(save) {
+  if (els.ownerInput.hidden) return;
+  if (save) {
+    ownerName = els.ownerInput.value.trim();
+    saveOwner();
+    renderOwner();
+  }
+  els.ownerInput.hidden = true;
+  els.ownerBtn.hidden = false;
+}
+
+// Handles keys in the name input: Enter saves, Escape cancels.
+function handleOwnerKeydown(event) {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    finishOwnerEdit(true);
+    els.ownerBtn.focus();
+  } else if (event.key === "Escape") {
+    finishOwnerEdit(false);
+    els.ownerBtn.focus();
+  }
+}
+
 /* ---------- Review mode ---------- */
 
 // Starts a review session that goes through every card in the deck.
@@ -311,6 +380,7 @@ function handleKeydown(event) {
 // Wires up event listeners and renders the saved deck on page load.
 function init() {
   cards = loadCards();
+  ownerName = loadOwner();
 
   els.form.addEventListener("submit", handleFormSubmit);
   els.cancelEdit.addEventListener("click", cancelEdit);
@@ -322,7 +392,11 @@ function init() {
   els.reviewAgain.addEventListener("click", startReview);
   els.backToDeck.addEventListener("click", exitReview);
   document.addEventListener("keydown", handleKeydown);
+  els.ownerBtn.addEventListener("click", startOwnerEdit);
+  els.ownerInput.addEventListener("keydown", handleOwnerKeydown);
+  els.ownerInput.addEventListener("blur", () => finishOwnerEdit(true));
 
+  renderOwner();
   renderDeck();
 }
 

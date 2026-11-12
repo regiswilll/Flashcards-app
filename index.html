@@ -28,7 +28,11 @@
       </form>
 
       <div class="deck-header">
-        <h2>Your deck</h2>
+        <h2 class="deck-title">
+          <button id="owner-btn" class="owner-btn" type="button" title="Click to enter your name">Your</button>
+          <input id="owner-input" class="owner-input" type="text" maxlength="40" placeholder="Your name" aria-label="Your name" hidden>
+          deck
+        </h2>
         <p id="deck-stats" class="muted"></p>
       </div>
       <p id="empty-message" class="muted empty">No cards yet. Add your first one above.</p>
